@@ -6,7 +6,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.gdu</groupId>
-  <artifactId>prj02</artifactId>
+  <artifactId>prj03</artifactId>
   <name>02_spring_mvc</name>
   <packaging>war</packaging>
   <version>1.0.0-BUILD-SNAPSHOT</version>
@@ -146,7 +146,7 @@
   <build>
   
     <!-- deploy file (배포 파일) 이름 바꾸기 -->
-    <finalName>prj02</finalName>
+    <finalName>{artifactId}</finalName>
   
     <plugins>
       <plugin>

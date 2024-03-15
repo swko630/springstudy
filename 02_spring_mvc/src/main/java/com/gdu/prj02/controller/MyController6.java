@@ -11,12 +11,13 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 
 import com.gdu.prj02.dto.UserDto;
+
 @SessionAttributes(names="user") // Model 에 user 가 저장되면 session 에 같은 값을 저장한다.
 @Controller
 public class MyController6 {
 
   @GetMapping("/user/login1.do")
-  public String login1(HttpServletRequest request) {
+  public String login1(HttpServletRequest request, Model model) {
     
     // HttpSession 구하기
     HttpSession session = request.getSession();
@@ -28,7 +29,7 @@ public class MyController6 {
     session.setAttribute("user", user);
     
     // 메인 페이지로 이동
-    return "redirect:/main.do";
+    return "redirect:/main.do" + request.getParameter("redirectURL");
     
   }
   

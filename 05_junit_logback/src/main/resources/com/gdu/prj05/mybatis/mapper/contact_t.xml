@@ -52,7 +52,7 @@
       , #{mobile} 
       , #{email} 
       , #{address}
-      , TO-CHAR(CURRENT_DATE, 'YYYY-MM-DD HH24:MI:SS') 
+      , TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD HH24:MI:SS') 
     )
     
   </insert>

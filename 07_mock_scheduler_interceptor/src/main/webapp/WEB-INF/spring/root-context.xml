@@ -28,8 +28,8 @@
         id="sqlSessionFactoryBean"
         scope="singleton">
     <property name="dataSource" ref="hikariDataSource"/>
-    <property name="configLocation"  value="classpath:com/gdu/prj06/mybatis/config/mybatis-config.xml"/>
-    <property name="mapperLocations" value="classpath:com/gdu/prj06/mybatis/mapper/*.xml"/>
+    <property name="configLocation"  value="classpath:com/gdu/prj07/mybatis/config/mybatis-config.xml"/>
+    <property name="mapperLocations" value="classpath:com/gdu/prj07/mybatis/mapper/*.xml"/>
   </bean>
   
   <bean class="org.mybatis.spring.SqlSessionTemplate"
@@ -38,11 +38,23 @@
     <constructor-arg ref="sqlSessionFactoryBean"/>
   </bean>
   
-  <bean class="com.gdu.prj06.dao.ContactDaoImpl"
+  <bean class="com.gdu.prj07.dao.ContactDaoImpl"
         id="contactDao"
         scope="singleton">
     <constructor-arg ref="sqlSessionTemplate"/>
   </bean>
+     <bean class="com.gdu.prj07.service.ContactServiceImpl"
+        id="contactService"
+        scope="singleton">
+    <constructor-arg ref="contactDao" />
+    </bean>
+    
+  <bean class="com.gdu.prj07.controller.ContactController"
+        id="contactController"
+        scope="singleton">
+   <constructor-arg ref="contactService"/>   
+  </bean>  
+    
     
       <!-- 트랙잭션 관리자 등록 -->
   <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
@@ -62,7 +74,7 @@
   
   <!-- Aspect 설정 -->
   <aop:config>
-    <aop:pointcut expression="execution (* com.gdu.prj06.service.*Impl.*(..))" 
+    <aop:pointcut expression="execution (* com.gdu.prj07.service.*Impl.*(..))" 
                   id="txPointCut"/> 
       <aop:advisor advice-ref="txAdvice"
                    pointcut-ref="txPointCut"/>

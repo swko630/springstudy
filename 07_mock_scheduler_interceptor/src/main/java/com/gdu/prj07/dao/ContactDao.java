@@ -9,7 +9,7 @@ public interface ContactDao {
   int modifyContact(ContactDto contactDto);
   int removeContact(int contactNo);
   List<ContactDto> getContactList();
-  ContactDto getContactByNo(int cntactNo);
+  ContactDto getContactByNo(int contactNo);
   
   
   

@@ -1,4 +1,4 @@
-ackage com.gdu.prj07.scheduler;
+package com.gdu.prj07.scheduler;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

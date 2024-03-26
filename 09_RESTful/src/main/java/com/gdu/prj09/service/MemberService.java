@@ -12,7 +12,7 @@ public interface MemberService {
   
   // /prj09/members/page/1/display/20 => 경로처럼 주소가 나오게 => @PathVariable
   ResponseEntity<Map<String, Object>> getMembers(int page, int display); // @ResponseBody를 품고있다
-  ResponseEntity<MemberDto> getMemberByNo(int memberNo);
+  ResponseEntity<Map<String, Object>> getMemberByNo(int memberNo);
   ResponseEntity<Map<String, Object>> registerMember(Map<String, Object> map, HttpServletResponse response);
   ResponseEntity<Map<String, Object>> modifyMember(MemberDto member);
   ResponseEntity<Map<String, Object>> removeMember(int memberNo);

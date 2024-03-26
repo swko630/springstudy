@@ -1,11 +1,13 @@
 package com.gdu.prj09.Controller;
 
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -44,16 +46,28 @@ public class MemberController {
   public void adminMember() {
       // 반환타입이 void 인 경우 주소를 JSP 경로로 인식한다.
       // /admin/member.do ======> /WEB-INF/views/admin/member.jsp
-  } 
+  }
   
   @PostMapping(value="/members", produces="application/json")
   public ResponseEntity<Map<String, Object>> registerMember(@RequestBody Map<String, Object> map
                                                                         , HttpServletResponse response){
     return memberService.registerMember(map, response);
   }
-  
-  
-  
-  
-  
+    /*       path value를 입력할땐 중괄호{}만 작성한다, 옵셔널은 required가 필수이다. */
+  @GetMapping(value="/members/page/{page}/display/{display}", produces="application/json")
+  public ResponseEntity<Map<String, Object>> getMembers(@PathVariable(value="page", required=false) Optional<String> optPage,
+                                                        @PathVariable(value="display", required=false) Optional<String> optDisplay){
+     int page = Integer.parseInt(optPage.orElse("1"));
+     int display = Integer.parseInt(optDisplay.orElse("20"));
+     return memberService.getMembers(page, display);
+  }
+  @GetMapping(value="/members/{memberNo}", produces="application/json")
+  public ResponseEntity<Map<String, Object>> getMemberByNo(@PathVariable(value="memberNo", required=false) Optional<String> opt){
+    
+    int memberNo = Integer.parseInt(opt.orElse("0"));
+    return memberService.getMemberByNo(memberNo);
+    
+  }
+ 
+
 }

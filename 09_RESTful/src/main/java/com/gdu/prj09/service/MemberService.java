@@ -6,15 +6,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.ResponseEntity;
 
-import com.gdu.prj09.dto.MemberDto;
-
 public interface MemberService {
   
   // /prj09/members/page/1/display/20 => 경로처럼 주소가 나오게 => @PathVariable
   ResponseEntity<Map<String, Object>> getMembers(int page, int display); // @ResponseBody를 품고있다
   ResponseEntity<Map<String, Object>> getMemberByNo(int memberNo);
   ResponseEntity<Map<String, Object>> registerMember(Map<String, Object> map, HttpServletResponse response);
-  ResponseEntity<Map<String, Object>> modifyMember(MemberDto member);
+  ResponseEntity<Map<String, Object>> modifyMember(Map<String, Object> map);
   ResponseEntity<Map<String, Object>> removeMember(int memberNo);
   ResponseEntity<Map<String, Object>> removeMembers(String memberNoList);
   

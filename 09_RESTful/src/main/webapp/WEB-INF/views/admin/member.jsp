@@ -13,6 +13,7 @@
 
   <div>
     <h1>회원관리</h1>
+    <input type="hidden" id="member-no">
     <div>
       <label for="email">이메일</label>
       <input type="text" id="email">
@@ -22,17 +23,17 @@
       <input type="text" id="name">
     </div>
     <div>
-      <label for="none">선택안함</label>
       <input type="radio" name="gender" id="none" value="none" checked>
-      <label for="man">남자</label>
+      <label for="none">선택안함</label>
       <input type="radio" name="gender" id="man" value="man">
-      <label for="woman">여자</label>
+      <label for="man">남자</label>
       <input type="radio" name="gender" id="woman" value="woman">
+      <label for="woman">여자</label>
     </div>
     <div>
-      <input type="text" id="zonecode" placeholder="우편번호">
+      <input type="text" id="zonecode" onclick="execDaumPostcode()" placeholder="우편번호" readonly>
       <input type="button" onclick="execDaumPostcode()" value="우편번호 찾기"><br>
-      <input type="text" id="address" placeholder="주소"><br>
+      <input type="text" id="address" placeholder="주소" readonly><br>
       <input type="text" id="detailAddress" placeholder="상세주소">
       <input type="text" id="extraAddress" placeholder="참고항목">
       <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
@@ -90,10 +91,16 @@
     
     <hr>
     
-    <div id="total"></div>
-    <div><select id="display"><option>20</option><option>50</option><option>100</option></select></div>
-    
     <div>
+      <div id="total"></div>
+      <div>
+        <button type="button" id="btn-select-remove">선택삭제</button>
+        <select id="display">
+          <option>20</option>
+          <option>50</option>
+          <option>100</option>
+        </select>
+      </div>
       <table border="1">
         <thead>
           <tr>
@@ -111,52 +118,14 @@
           </tr>
         </tfoot>
       </table>
-      <button type="button" id="btn-select-remove">선택삭제</button>
     </div>
     
   </div>
   
-  <script src="${contextPath}/resources/js/member.js"></script>
+  <script src="${contextPath}/resources/js/member.js?dt=<%=System.currentTimeMillis()%>"></script>
   <script>
   
-//jQuery 객체 선언
-var btnDetail = $('.btn-detail');
 
-  
-// 전역 변수
-// 함수 표현식 (함수 만들기)
-const getMemberByNo = (evt) => {
-	$.ajax({
-		type:'GET',
-		url: getContextPath() + '/members/' + evt.target.dataset.memberNo,
-		dataType: 'json'
-	}).done(resData=>{ /*  resData = {
-		                            "addressList": [
-		                            	
-		                            ],
-		                            "member": {
-		                            	"memberNo" : 1,
-		                            }
-                              } 
-		                       
-		
-		                 */
-		email.val(resData.member.email);
-		mName.val(resData.member.name);
-	 $(':radio[value=' + resData.member.gender + ']').prop('checked', true);
-	 zonecode.val(resData.addressList[0].zonecode);
-	 address.val(resData.addressList[0].address);
-	 detailAddress.val(resData.addressList[0].detailAddress);
-	 extraAddress.val(resData.addressList[0].extraAddress);
-	 
-	}).fail(jqXHR=>{
-		alert(jqXHR.statusText + '(' + jqXHR.status + ')');
-	})
-}
-  
-// 함수 호출 및 이벤트
-$(document).on('click', '.btn-detail', (evt)=>{ getMemberByNo(evt); })
-  
   </script>
 
 </body>

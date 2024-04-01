@@ -6,7 +6,7 @@
   <!-- Console view 에 로그를 찍는 Appender -->
   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-      <layout class="custom.logback.layout.MyLogbackLayout"/>
+      <layout class="com.gdu.myapp.logback.MyLogbackLayout"/>
     </encoder>
   </appender>
   
@@ -16,7 +16,7 @@
     <append>true</append>
     <immediateFlush>true</immediateFlush>
     <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-      <layout class="custom.logback.layout.MyLogbackLayout"/>
+      <layout class="com.gdu.myapp.logback.MyLogbackLayout"/>
     </encoder>
   </appender>
   
@@ -29,7 +29,7 @@
       <maxHistory>30</maxHistory>
     </rollingPolicy>
     <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-      <customFields>{"appname":"myWebservice","roles":["customerorder","auth"],"buildinfo":{"version":"Version 0.1.0-SNAPSHOT","lastcommit":"75473700d5befa953c45f630c6d9105413c16fe1"}}</customFields>
+      <customFields>{"appname":"myapp","roles":["customerorder","auth"],"buildinfo":{"version":"Version 0.1.0-SNAPSHOT","lastcommit":"75473700d5befa953c45f630c6d9105413c16fe1"}}</customFields>
     </encoder>
   </appender>
   
@@ -52,6 +52,7 @@
   <root>
     <priority value="warn" />
     <appender-ref ref="console" />
+    <appender-ref ref="file" />
     <appender-ref ref="rolling" />
   </root>
 

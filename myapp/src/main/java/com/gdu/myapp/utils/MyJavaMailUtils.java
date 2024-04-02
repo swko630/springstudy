@@ -45,7 +45,7 @@ public class MyJavaMailUtils {
       
       // 메일 만들기 (보내는 사람 + 받는 사람 + 제목 + 내용)
       MimeMessage mimeMessage = new MimeMessage(session);
-      mimeMessage.setFrom(new InternetAddress(env.getProperty("spring.mail.username"), "또 다른 나"));
+      mimeMessage.setFrom(new InternetAddress(env.getProperty("spring.mail.username"), "메일 연습"));
       mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
       mimeMessage.setSubject(subject);
       mimeMessage.setContent(content, "text/html; charset=UTF-8");

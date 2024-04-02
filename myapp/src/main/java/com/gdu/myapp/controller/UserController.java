@@ -1,11 +1,12 @@
 package com.gdu.myapp.controller;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -53,6 +54,19 @@ public class UserController {
     // Sign In 페이지로 url 넘겨 주기
     model.addAttribute("url",  url);
     
+    /******** 네이버 로그인 1 */
+    String redirectUri = "http://localhost8080" + request.getContextPath() + "/user/naver/getAccessToken.do";
+    String state = new BigInteger(130, new SecureRandom()).toString();
+    
+    StringBuilder builder = new StringBuilder();
+    builder.append("https://nid.naver.com/oauth2.0/authorize");
+    builder.append("?response_type=code");
+    builder.append("&client_id=BVg8BoMZHTyHGWVh3gvh");
+    builder.append("&redirect_uri=" + redirectUri);
+    builder.append("&state=" + state);
+    
+    model.addAttribute("naverLoginUrl" , builder.toString());
+    
     return "user/signin";
     
   }
@@ -67,15 +81,36 @@ public class UserController {
     return "user/signup";
   }
   
-  @PostMapping(value="/checkEmail.do", produces="application/json")  
-  public ResponseEntity<Map<String, Object>> checkEamil(@RequestBody Map<String, Object> params) {
+  @PostMapping(value="/checkEmail.do", produces="application/json")
+  public ResponseEntity<Map<String, Object>> checkEmail(@RequestBody Map<String, Object> params) {
     return userService.checkEmail(params);
   }
   
-  @PostMapping(value="/sendCode.do", produces="application/json" )
-  public ResponseEntity<Map<String, Object>> sendCode(@RequestBody Map<String, Object> params){
-   return userService.sendCode(params);
+  @PostMapping(value="/sendCode.do", produces="application/json")
+  public ResponseEntity<Map<String, Object>> sendCode(@RequestBody Map<String, Object> params) {
+    return userService.sendCode(params);
   }
+  
+  @PostMapping("/signup.do")
+  public void signup(HttpServletRequest request, HttpServletResponse response) {
+    userService.signup(request, response);
+  }
+  
+  @GetMapping("/leave.do")
+  public void leave(HttpServletRequest request, HttpServletResponse response) {
+    userService.leave(request, response);
+  }
+  /*
+  @GetMapping("/leave.do")
+  public void leave(HttpSession session, HttpServletResponse response) {
+    UserDto user = (UserDto) session.getAttribute("user");
+  }
+  @GetMapping("/leave.do")
+  public void leave(@SessionAttribute(name="user") UserDto user, HttpServletResponse response) {   
+  }
+  */
+  
+  
   
   
   

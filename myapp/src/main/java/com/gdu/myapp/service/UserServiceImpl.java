@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
   
   @Override
   public void signup(HttpServletRequest request, HttpServletResponse response) {
-    
+
     // 전달된 파라미터
     String email = request.getParameter("email");
     String pw = MySecurityUtils.getSha256(request.getParameter("pw"));
@@ -108,15 +108,17 @@ public class UserServiceImpl implements UserService {
       if(insertCount == 1) {
        
         // Sign In 및 접속 기록을 위한 Map
-        Map<String, Object> map = Map.of("email", email
-                                       , "pw", pw
-                                       , "ip", request.getRemoteAddr());
+        Map<String, Object> params = Map.of("email", email
+                                          , "pw", pw
+                                          , "ip", request.getRemoteAddr()
+                                          , "userAgent", request.getHeader("User-Agent")
+                                          , "sessionId", request.getSession().getId());
        
         // Sign In (세션에 user 저장하기)
-        request.getSession().setAttribute("user", userMapper.getUserByMap(map));
+        request.getSession().setAttribute("user", userMapper.getUserByMap(params));
        
         // 접속 기록 남기기
-        userMapper.insertAccessHistory(map);
+        userMapper.insertAccessHistory(params);
        
         out.println("alert('회원 가입되었습니다.');");
         out.println("location.href='" + request.getContextPath() + "/main.page';");
@@ -186,13 +188,13 @@ public class UserServiceImpl implements UserService {
     String referer = request.getHeader("referer");
     
     // referer 로 돌아가면 안 되는 예외 상황 (아이디/비밀번호 찾기 화면, 가입 화면 등)
-    String[] excludeUrls = {"/findId.page", "/findPw.page", "/signup.page"};
+    String[] excludeURLs = {"/findId.page", "/findPw.page", "/signup.page"};
     
     // Sign In 이후 이동할 url
     String url = referer;
     if(referer != null) {
-      for(String excludeUrl : excludeUrls) {
-        if(referer.contains(excludeUrl)) {
+      for(String excludeURL : excludeURLs) {
+        if(referer.contains(excludeURL)) {
           url = request.getContextPath() + "/main.page";
           break;
         }
@@ -202,6 +204,87 @@ public class UserServiceImpl implements UserService {
     }
     
     return url;
+    
+  }
+  
+  @Override
+  public void signin(HttpServletRequest request, HttpServletResponse response) {
+    
+    try {
+      
+      // 입력한 아이디
+      String email = request.getParameter("email");
+      
+      // 입력한 비밀번호 + SHA-256 방식의 암호화
+      String pw = MySecurityUtils.getSha256(request.getParameter("pw"));
+      
+      // 접속 IP (접속 기록을 남길 때 필요한 정보)
+      String ip = request.getRemoteAddr();
+      
+      // 접속 수단 (요청 헤더의 User-Agent 값)
+      String userAgent = request.getHeader("User-Agent");
+
+      // DB로 보낼 정보 (email/pw: USER_T , email/ip/userAgent/sessionId: ACCESS_HISTORY_T) 
+      Map<String, Object> params = Map.of("email", email
+                                        , "pw", pw
+                                        , "ip", ip
+                                        , "userAgent", userAgent
+                                        , "sessionId", request.getSession().getId());
+      
+      // email/pw 가 일치하는 회원 정보 가져오기
+      UserDto user = userMapper.getUserByMap(params);
+      
+      // 일치하는 회원 있음 (Sign In 성공)
+      if(user != null) {
+        
+        // 접속 기록 ACCESS_HISTORY_T 에 남기기
+        userMapper.insertAccessHistory(params);
+        
+        // 회원 정보를 세션(브라우저 닫기 전까지 정보가 유지되는 공간, 기본 30분 정보 유지)에 보관하기
+        HttpSession session = request.getSession();
+        session.setAttribute("user", user);
+        session.setMaxInactiveInterval(10);  // 세션 유지 시간 10초 설정
+        
+        // Sign In 후 페이지 이동
+        response.sendRedirect(request.getParameter("url"));
+      
+      // 일치하는 회원 없음 (Sign In 실패)
+      } else {
+        response.setContentType("text/html; charset=UTF-8");
+        PrintWriter out = response.getWriter();
+        out.println("<script>");
+        out.println("alert('일치하는 회원 정보가 없습니다.');");
+        out.println("location.href='" + request.getContextPath() + "/main.page';");
+        out.println("</script>");
+        out.flush();
+        out.close();
+      }
+      
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    
+  }
+
+  @Override
+  public void signout(HttpServletRequest request, HttpServletResponse response) {
+    
+    try {
+      
+      // Sign Out 기록 남기기
+      HttpSession session = request.getSession();
+      String sessionId = session.getId(); 
+      userMapper.updateAccessHistory(sessionId);
+      
+      // 세션에 저장된 모든 정보 초기화
+      session.invalidate();
+      
+      // 메인 페이지로 이동
+      response.sendRedirect(request.getContextPath() + "/main.page");
+      
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     
   }
   
@@ -216,7 +299,7 @@ public class UserServiceImpl implements UserService {
     StringBuilder builder = new StringBuilder();
     builder.append("https://nid.naver.com/oauth2.0/authorize");
     builder.append("?response_type=code");
-    builder.append("&client_id=BVg8BoMZHTyHGWVh3gvh");
+    builder.append("&client_id=NSIlxRD3gSk0BEHeKhk4");
     builder.append("&redirect_uri=" + redirectUri);
     builder.append("&state=" + state);
     
@@ -226,7 +309,8 @@ public class UserServiceImpl implements UserService {
   
   @Override
   public String getNaverLoginAccessToken(HttpServletRequest request) {
-    /***************네이버 로그인 2**********/
+    
+    /************* 네이버 로그인 2 *************/
     // 네이버로부터 Access Token 을 발급 받아 반환하는 메소드
     // 네이버 로그인 1단계에서 전달한 redirect_uri 에서 동작하는 서비스
     // code 와 state 파라미터를 받아서 Access Token 을 발급 받을 때 사용
@@ -236,8 +320,8 @@ public class UserServiceImpl implements UserService {
     
     String spec = "https://nid.naver.com/oauth2.0/token";
     String grantType = "authorization_code";
-    String clientId = "BVg8BoMZHTyHGWVh3gvh";    
-    String clientSecret = "SIkzyXfVy0";
+    String clientId = "NSIlxRD3gSk0BEHeKhk4";
+    String clientSecret = "qBkPHuLERa";
     
     StringBuilder builder = new StringBuilder();
     builder.append(spec);
@@ -249,13 +333,14 @@ public class UserServiceImpl implements UserService {
     
     HttpURLConnection con = null;
     JSONObject obj = null;
+    
     try {
-      
+    
       // 요청
       URL url = new URL(builder.toString());
       con = (HttpURLConnection) url.openConnection();
-      con.setRequestMethod("GET"); // 반드시 대문자로 작성해야 한다.
-      
+      con.setRequestMethod("GET");  // 반드시 대문자로 작성해야 한다.
+
       // 응답 스트림 생성
       BufferedReader reader = null;
       int responseCode = con.getResponseCode();
@@ -271,6 +356,7 @@ public class UserServiceImpl implements UserService {
       while((line = reader.readLine()) != null) {
         responseBody.append(line);
       }
+      
       // 응답 데이터를 JSON 객체로 변환하기
       obj = new JSONObject(responseBody.toString());
       
@@ -280,22 +366,23 @@ public class UserServiceImpl implements UserService {
     } catch (Exception e) {
       e.printStackTrace();
     }
+    
     con.disconnect();
     
-    
     return obj.getString("access_token");
+    
   }
   
   @Override
   public UserDto getNaverLoginProfile(String accessToken) {
-    /***************네이버 로그인 3**********/
+    
+    /************* 네이버 로그인 3 *************/
     // 네이버로부터 프로필 정보(이메일, [이름, 성별, 휴대전화번호]) 을 발급 받아 반환하는 메소드
     
     String spec = "https://openapi.naver.com/v1/nid/me";
     
     HttpURLConnection con = null;
     UserDto user = null;
-    
     
     try {
       
@@ -322,15 +409,16 @@ public class UserServiceImpl implements UserService {
       while((line = reader.readLine()) != null) {
         responseBody.append(line);
       }
+      
       // 응답 데이터를 JSON 객체로 변환하기
       JSONObject obj = new JSONObject(responseBody.toString());
       JSONObject response = obj.getJSONObject("response");
       user = UserDto.builder()
-                    .email(response.getString("email"))
-                  .build();
-      if(response.has("name")) user.setName(response.getString("name"));
-      if(response.has("gender")) user.setName(response.getString("gender"));
-      if(response.has("mobile")) user.setName(response.getString("mobile"));
+                .email(response.getString("email"))
+                .gender(response.has("gender") ? response.getString("gender") : null)
+                .name(response.has("name") ? response.getString("name") : null)
+                .mobile(response.has("mobile") ? response.getString("mobile") : null)
+              .build();
       
       // 응답 스트림 닫기
       reader.close();
@@ -338,69 +426,15 @@ public class UserServiceImpl implements UserService {
     } catch (Exception e) {
       e.printStackTrace();
     }
+    
     con.disconnect();
     
     return user;
+    
   }
   
   @Override
-  public void signin(HttpServletRequest request, HttpServletResponse response) {
-    
-    try {
-      
-      // 입력한 아이디
-      String email = request.getParameter("email");
-      
-      // 입력한 비밀번호 + SHA-256 방식의 암호화
-      String pw = MySecurityUtils.getSha256(request.getParameter("pw"));
-      
-      // 접속 IP (접속 기록을 남길 때 필요한 정보)
-      String ip = request.getRemoteAddr();
-      
-      // DB로 보낼 정보 (email/pw: USER_T , email/ip: ACCESS_HISTORY_T) 
-      Map<String, Object> params = Map.of("email", email
-                                        , "pw", pw
-                                        , "ip", ip);
-      
-      // email/pw 가 일치하는 회원 정보 가져오기
-      UserDto user = userMapper.getUserByMap(params);
-      
-      // 일치하는 회원 있음 (Sign In 성공)
-      if(user != null) {
-        // 접속 기록 ACCESS_HISTORY_T 에 남기기
-        userMapper.insertAccessHistory(params);
-        // 회원 정보를 세션(브라우저 닫기 전까지 정보가 유지되는 공간, 기본 30분 정보 유지)에 보관하기
-        request.getSession().setAttribute("user", user);
-        // Sign In 후 페이지 이동
-        response.sendRedirect(request.getParameter("url"));
-      
-      // 일치하는 회원 없음 (Sign In 실패)
-      } else {
-        response.setContentType("text/html; charset=UTF-8");
-        PrintWriter out = response.getWriter();
-        out.println("<script>");
-        out.println("alert('일치하는 회원 정보가 없습니다.')");
-        out.println("location.href='" + request.getContextPath() + "/main.page'");
-        out.println("</script>");
-        out.flush();
-        out.close();
-      }
-      
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    
-  }
-
-  @Override
-  public void signout(HttpServletRequest request, HttpServletResponse response) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
   public boolean hasUser(UserDto user) {
-    
     return userMapper.getLeaveUserByMap(Map.of("email", user.getEmail())) != null;
   }
   
@@ -414,6 +448,7 @@ public class UserServiceImpl implements UserService {
     request.getSession().setAttribute("user", user);
     userMapper.insertAccessHistory(map);
     
-    
   }
+
+
 }

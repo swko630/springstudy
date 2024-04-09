@@ -1,6 +1,6 @@
-
-
-
+/**
+ * 
+ */
 
 var emailCheck = false;
 var passwordCheck = false;

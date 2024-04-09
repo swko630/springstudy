@@ -18,10 +18,10 @@ import org.springframework.stereotype.Component;
 @PropertySource(value = "classpath:email.properties")
 @Component
 public class MyJavaMailUtils {
-  
+
   @Autowired
   private Environment env;
-
+  
   public void sendMail(String to, String subject, String content) {
     
     // 이메일을 보내는 호스트의 정보 : 구글
@@ -35,7 +35,6 @@ public class MyJavaMailUtils {
     Session session = Session.getInstance(props, new Authenticator() {
       @Override
       protected PasswordAuthentication getPasswordAuthentication() {
-        // TODO Auto-generated method stub
         return new PasswordAuthentication(env.getProperty("spring.mail.username")
                                         , env.getProperty("spring.mail.password"));
       }
@@ -45,7 +44,7 @@ public class MyJavaMailUtils {
       
       // 메일 만들기 (보내는 사람 + 받는 사람 + 제목 + 내용)
       MimeMessage mimeMessage = new MimeMessage(session);
-      mimeMessage.setFrom(new InternetAddress(env.getProperty("spring.mail.username"), "메일 연습"));
+      mimeMessage.setFrom(new InternetAddress(env.getProperty("spring.mail.username"), "myapp"));
       mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
       mimeMessage.setSubject(subject);
       mimeMessage.setContent(content, "text/html; charset=UTF-8");
@@ -56,6 +55,7 @@ public class MyJavaMailUtils {
     } catch (Exception e) {
       e.printStackTrace();
     }
+    
   }
   
 }
